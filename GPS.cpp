@@ -2,16 +2,16 @@
 #include <TinyGPS++.h>
 
 
-#define RXD2 18
+#define RXD2 18             //UART Pin Definitions
 #define TXD2 17
 HardwareSerial neogps(1);
 
 TinyGPSPlus gps;
 
-void print_speed();
-void lat_long();
-double get_latitude();
-double get_longitude();
+void print_speed();         //Prints speed data that is fetched from GPS receiver
+void lat_long();            //Starts to receive GPS datas with baudrate 9600 and configure serial pins
+double get_latitude();      //Gets Latitude data that is fetched from GPS receiver
+double get_longitude();     //Gets Longitude data that is fetched from GPS receiver
 
 
 
@@ -43,7 +43,8 @@ void lat_long(){
 }
 
 
-void print_speed()
+/*****You can use this function to see Latitude, Longitude, Speed Values*/
+void print_speed()          
 {
        
   if (gps.location.isValid() == 1)
