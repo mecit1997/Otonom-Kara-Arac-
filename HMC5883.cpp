@@ -2,7 +2,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_HMC5883_U.h>
 
-/*8 -> SDA
+/*8 -> SDA      I2C Data Pin Configuration
   9 -> SCL
 */
 /* Assign a unique ID to this sensor at the same time */
@@ -47,6 +47,5 @@ double get_angle()
   
   Serial.print("Heading (degrees): "); Serial.println(headingDegrees);
   
-  //delay(500);
   return headingDegrees;
 }
