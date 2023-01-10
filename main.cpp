@@ -15,15 +15,13 @@
 /*Wi-Fi*/
 AsyncWebServer server(80);
 
-// REPLACE WITH YOUR NETWORK CREDENTIALS
-const char* ssid     = "MCD";
-const char* password = "mecidinternet";
+const char* PARAM_INPUT_1 = "input1"; //These are the input values on the web server
+const char* PARAM_INPUT_2 = "input2"; //These will be used to get the location values;
 
-const char* PARAM_INPUT_1 = "input1";
-const char* PARAM_INPUT_2 = "input2";
-const char* PARAM_INPUT_3 = "input3";
-
-// HTML web page to handle 3 input fields (input1, input2, input3)
+/************************************************************/
+/**HTML web page to handle 2 input fields (input1, input2)***/
+/*******HTML page can be configured according to needs*******/
+/*************************************************************/
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html><head>
   <title>ESP Input Form</title>
@@ -36,7 +34,6 @@ const char index_html[] PROGMEM = R"rawliteral(
     Longitude: <input type="text" name="input2"><br>
     <input type="submit" value="Submit">
   </form><br>
-  https://www.google.com/maps/place/40%C2%B055'02.0%22N+29%C2%B013'17.7%22E/@40.917225,29.221579,17z
 </body></html>)rawliteral";
 
 
@@ -46,8 +43,9 @@ void notFound(AsyncWebServerRequest *request) {
 
 
 
-
-
+/**************************************/
+/**********Function externs************/
+/**************************************/
 extern double get_angle();
 extern void lat_long();
 extern double dist(double,double,double,double);
@@ -71,15 +69,10 @@ void setup(void)
 {
   Serial.begin(9600);
   WiFi.mode(WIFI_AP);
-  WiFi.softAP("ESP32","Arac123456");
-  //WiFi.begin(ssid, password);
-  Serial.print("IP address:");
+  WiFi.softAP("ESP32","Arac123456");  //ESP32 is set to be an access point so that users can connect with the described credentials
+  Serial.print("IP address:");        //Prints the ip address to connect the web server
   Serial.println(WiFi.softAPIP());
 
- /* if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    Serial.println("WiFi Failed!");
-    return;
-  }*/
   Serial.println();
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
@@ -99,11 +92,11 @@ void setup(void)
     Serial.println(request->getParam(PARAM_INPUT_1)->value());
     Serial.println(request->getParam(PARAM_INPUT_2)->value());
     
-    dest_latitude = request->getParam(PARAM_INPUT_1)->value();
-    dest_longitude = request->getParam(PARAM_INPUT_2)->value();
+    dest_latitude = request->getParam(PARAM_INPUT_1)->value();    //dest_latitude value is fetched from web server
+    dest_longitude = request->getParam(PARAM_INPUT_2)->value();   //dest_longitude value is fetched from web server
 
-    KonumValues.latitude_destination  = (double)dest_latitude.toFloat();
-    KonumValues.longitude_destination = (double)dest_longitude.toFloat();
+    KonumValues.latitude_destination  = (double)dest_latitude.toFloat();  //convert string values to double
+    KonumValues.longitude_destination = (double)dest_longitude.toFloat(); //convert string values to double
 
 
 
@@ -117,8 +110,9 @@ void setup(void)
   server.onNotFound(notFound);
   server.begin();
 
-
-  Serial.println("HMC5883 Magnetometer Test"); Serial.println("");
+  /********************************************/
+  /****L298N Motor Driver Pin Configuration****/
+  /********************************************/
   pinMode(motor1Pin1, OUTPUT);
   pinMode(motor1Pin2, OUTPUT);
   pinMode(enable1Pin, OUTPUT);
@@ -131,11 +125,10 @@ void setup(void)
   ledcAttachPin(enable1Pin, pwmChannel);
   ledcWrite(pwmChannel, dutyCycle);
 
-  /*Motor 2*/
-   //ledcSetup(pwmChannel, freq, resolution);
-  ledcAttachPin(enable2Pin, pwmChannel);
-  ledcWrite(pwmChannel, dutyCycle);
-
+  
+  ledcAttachPin(enable2Pin, pwmChannel);  //pwm resolution is set to 8 bits (0 to 255)
+  ledcWrite(pwmChannel, dutyCycle);       //dutyCycle value is set in the header file
+                                          //it could be changed for different speeds
 }
 
 
@@ -143,58 +136,41 @@ void setup(void)
 
 void loop(void) 
 {
+  //Gets vehcile's location values 
     KonumValues.location_result_latitude = get_latitude();
     KonumValues.location_result_longitude = get_longitude();
 
-   /*DEBUG*/
-    Serial.printf("lat dest: %f\n",KonumValues.location_result_latitude); 
-    Serial.printf("long dest: %f\n ",KonumValues.location_result_longitude);
-
-
-
     lat_long();
-    pusula_acisi = get_angle();
+    pusula_acisi = get_angle(); //Get magnetometer angle
+  
+    //Calculate the angle between vehicle's location and destination location 
     KonumValues.angle = calcAngle(KonumValues.location_result_latitude,KonumValues.location_result_longitude,
       KonumValues.latitude_destination, KonumValues.longitude_destination);
 
-    Serial.printf("KonumValues.angle= %f\n ",KonumValues.angle);
 
     //Calculates the Distance Between Car and Destination
     KonumValues.distance = dist(KonumValues.location_result_latitude, KonumValues.location_result_longitude,
                             KonumValues.latitude_destination, KonumValues.longitude_destination);
 
-    if(KonumValues.latitude_destination >25 && KonumValues.longitude_destination >25)
-    {
+    if(KonumValues.latitude_destination  && KonumValues.longitude_destination ) // if destination values was sent from the web server
+    {                                                                           // then vehicle starts to move
 
-
-
-
-
-
-
-
-
-
-    if(pusula_acisi < KonumValues.angle){
-      Serial.printf("deneme");
-      delay(500);
-        left_wheel_forward();
-        right_wheel_stop();
-    }
-    if(pusula_acisi > KonumValues.angle){
-      delay(500);
-      Serial.printf("deneme2");
-      right_wheel_forward();
-      left_wheel_stop();
-    }
-    if(pusula_acisi < (KonumValues.angle + 15) && pusula_acisi > (KonumValues.angle - 15)){
-      right_wheel_forward();
-      left_wheel_forward();
-    }
-    if(KonumValues.distance < 10){
-      left_wheel_stop();
-      right_wheel_stop();
-    }
+      if(pusula_acisi < KonumValues.angle){  //to find the correct angle start to left wheel
+          left_wheel_forward();
+          right_wheel_stop();
+      }
+      if(pusula_acisi > KonumValues.angle){ //to find the correct angle start to right wheel
+         right_wheel_forward();
+         left_wheel_stop();
+      }
+      if(pusula_acisi < (KonumValues.angle + 15) && pusula_acisi > (KonumValues.angle - 15)){ // if the angle between car and destination is in the correct range
+          right_wheel_forward();                                                              // then move forward
+          left_wheel_forward();
+      }
+      if(KonumValues.distance < 5){ // if the distance between car and destination is less then 5 meters then stop the vehicle
+          left_wheel_stop();
+          right_wheel_stop();
+      }
     }
 
 
