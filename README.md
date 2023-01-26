@@ -5,3 +5,10 @@ HMC5883L Manyetometre sensörü pusula olarak yön bulmak için kullanılmışt�
 ESP32 üzerinde oluşturulan web server üzerinden aracın gitmesi istenilen konum (enlem - boylam) bilgileri alınmaktadır.
 Alınan enlem ve boylam bilgileri aracın GPS üzerinden aldığı verilerle kıyaslanarak iki nokta arasındaki mesafe ve açı ölçülmektedir.
 Web Server üzerinden veri göndermek için google maps uygulaması üzerinde bir nokta seçilip enlem ve boylam bilgileri aktarılmalıdır.
+
+
+
+
+Video Linkleri:
+https://youtu.be/0Ap6bzg-jPk
+https://youtu.be/xjIi3h4CWLg
